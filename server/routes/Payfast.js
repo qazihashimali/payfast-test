@@ -96,8 +96,8 @@ payfastRouter.post("/initiate", async (req, res) => {
   }
 });
 
-payfastRouter.get("/success", (req, res) => {
-  const { BASKET_ID, TXNAMT, RESPONSE_CODE } = req.query;
+payfastRouter.post("/success", (req, res) => {
+  const { BASKET_ID, TXNAMT, RESPONSE_CODE } = req.body; // ← req.body not req.query
   if (RESPONSE_CODE === "00") {
     return res.redirect(
       `${process.env.CLIENT_URL}/order-success?orderId=${BASKET_ID}&amount=${TXNAMT}`
@@ -106,9 +106,11 @@ payfastRouter.get("/success", (req, res) => {
   res.redirect(`${process.env.CLIENT_URL}/order-failed?code=${RESPONSE_CODE}`);
 });
 
-payfastRouter.get("/failure", (req, res) => {
-  const { RESPONSE_CODE } = req.query;
-  res.redirect(`${process.env.CLIENT_URL}/order-failed?code=${RESPONSE_CODE}`);
+payfastRouter.post("/failure", (req, res) => {
+  const { RESPONSE_CODE, BASKET_ID } = req.body; // ← req.body not req.query
+  res.redirect(
+    `${process.env.CLIENT_URL}/order-failed?code=${RESPONSE_CODE}&orderId=${BASKET_ID}`
+  );
 });
 
 export default payfastRouter;

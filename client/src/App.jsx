@@ -1,14 +1,47 @@
 import { useState } from "react";
 import axios from "axios";
 
+function OrderSuccess() {
+  const params = new URLSearchParams(window.location.search);
+  return (
+    <div style={{ padding: 40, fontFamily: "sans-serif", textAlign: "center" }}>
+      <h1 style={{ color: "green" }}>✅ Payment Successful!</h1>
+      <p>
+        Order ID: <strong>{params.get("orderId")}</strong>
+      </p>
+      <p>
+        Amount: <strong>PKR {params.get("amount")}</strong>
+      </p>
+      <a href="/">Go back</a>
+    </div>
+  );
+}
+
+function OrderFailed() {
+  const params = new URLSearchParams(window.location.search);
+  return (
+    <div style={{ padding: 40, fontFamily: "sans-serif", textAlign: "center" }}>
+      <h1 style={{ color: "red" }}>❌ Payment Failed</h1>
+      <p>
+        Error Code: <strong>{params.get("code")}</strong>
+      </p>
+      <a href="/">Try again</a>
+    </div>
+  );
+}
+
 export default function App() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
 
+  // Simple routing
+  const path = window.location.pathname;
+  if (path === "/order-success") return <OrderSuccess />;
+  if (path === "/order-failed") return <OrderFailed />;
+
   const handlePayment = async () => {
     setLoading(true);
     setError(null);
-
     try {
       const { data } = await axios.post(
         "https://payfast-test.vercel.app/api/payfast/initiate",
@@ -23,20 +56,12 @@ export default function App() {
 
       if (!data.success) throw new Error(data.message || "Initiation failed");
 
-      console.log("PayFast payload:", data.payload);
-      console.log("Access token:", data.accessToken);
-
-      // Build a hidden POST form and submit to PayFast
       const form = document.createElement("form");
       form.method = "POST";
       form.action =
         "https://ipguat.apps.net.pk/Ecommerce/api/Transaction/PostTransaction";
 
-      const fields = {
-        ...data.payload,
-        ACCESS_TOKEN: data.accessToken,
-      };
-
+      const fields = { ...data.payload, ACCESS_TOKEN: data.accessToken };
       Object.entries(fields).forEach(([key, value]) => {
         const input = document.createElement("input");
         input.type = "hidden";
@@ -50,7 +75,7 @@ export default function App() {
     } catch (err) {
       console.error("Payment error:", err);
       setError(
-        err?.response?.data?.error || err.message || "Something went wrong"
+        err?.response?.data?.message || err.message || "Something went wrong"
       );
       setLoading(false);
     }
@@ -62,7 +87,6 @@ export default function App() {
       <p>
         Amount: <strong>PKR 1,000</strong>
       </p>
-
       {error && (
         <p
           style={{
@@ -75,7 +99,6 @@ export default function App() {
           ❌ {error}
         </p>
       )}
-
       <button
         onClick={handlePayment}
         disabled={loading}
