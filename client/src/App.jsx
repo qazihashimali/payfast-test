@@ -56,13 +56,13 @@ export default function App() {
 
       if (!data.success) throw new Error(data.message || "Initiation failed");
 
+      // POST payload directly to GetAccessToken — browser handles the redirect
       const form = document.createElement("form");
       form.method = "POST";
       form.action =
-        "https://ipguat.apps.net.pk/Ecommerce/api/Transaction/PostTransaction";
+        "https://ipguat.apps.net.pk/Ecommerce/api/Transaction/GetAccessToken"; // ← changed
 
-      const fields = { ...data.payload, ACCESS_TOKEN: data.accessToken };
-      Object.entries(fields).forEach(([key, value]) => {
+      Object.entries(data.payload).forEach(([key, value]) => {
         const input = document.createElement("input");
         input.type = "hidden";
         input.name = key;
@@ -71,7 +71,7 @@ export default function App() {
       });
 
       document.body.appendChild(form);
-      form.submit();
+      form.submit(); // browser POSTs → PayFast handles token + shows payment page
     } catch (err) {
       console.error("Payment error:", err);
       setError(
