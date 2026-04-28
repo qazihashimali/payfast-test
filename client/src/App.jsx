@@ -39,10 +39,52 @@ export default function App() {
   if (path === "/order-success") return <OrderSuccess />;
   if (path === "/order-failed") return <OrderFailed />;
 
+  // const handlePayment = async () => {
+  //   setLoading(true);
+  //   setError(null);
+  //   try {
+  //     const { data } = await axios.post(
+  //       "https://payfast-test.vercel.app/api/payfast/initiate",
+  //       {
+  //         amount: "1000",
+  //         orderId: "ORDER-" + Date.now(),
+  //         customerEmail: "test@example.com",
+  //         customerPhone: "03001234567",
+  //         description: "Test Order",
+  //       }
+  //     );
+
+  //     if (!data.success) throw new Error(data.message || "Initiation failed");
+
+  //     // POST payload directly to GetAccessToken — browser handles the redirect
+  //     const form = document.createElement("form");
+  //     form.method = "POST";
+  //     form.action =
+  //       "https://ipguat.apps.net.pk/Ecommerce/api/Transaction/GetAccessToken"; // ← changed
+
+  //     Object.entries(data.payload).forEach(([key, value]) => {
+  //       const input = document.createElement("input");
+  //       input.type = "hidden";
+  //       input.name = key;
+  //       input.value = value ?? "";
+  //       form.appendChild(input);
+  //     });
+
+  //     document.body.appendChild(form);
+  //     form.submit(); // browser POSTs → PayFast handles token + shows payment page
+  //   } catch (err) {
+  //     console.error("Payment error:", err);
+  //     setError(
+  //       err?.response?.data?.message || err.message || "Something went wrong"
+  //     );
+  //     setLoading(false);
+  //   }
+  // };
   const handlePayment = async () => {
     setLoading(true);
     setError(null);
     try {
+      // Step 1 — your backend generates token server-side
       const { data } = await axios.post(
         "https://payfast-test.vercel.app/api/payfast/initiate",
         {
@@ -54,33 +96,29 @@ export default function App() {
         }
       );
 
-      if (!data.success) throw new Error(data.message || "Initiation failed");
+      if (!data.success || !data.accessToken)
+        throw new Error("Could not get access token");
 
-      // POST payload directly to GetAccessToken — browser handles the redirect
+      // Step 2 — POST token to PostTransaction via hidden form (no CORS issue)
       const form = document.createElement("form");
       form.method = "POST";
       form.action =
-        "https://ipguat.apps.net.pk/Ecommerce/api/Transaction/GetAccessToken"; // ← changed
+        "https://ipguat.apps.net.pk/Ecommerce/api/Transaction/PostTransaction";
 
-      Object.entries(data.payload).forEach(([key, value]) => {
-        const input = document.createElement("input");
-        input.type = "hidden";
-        input.name = key;
-        input.value = value ?? "";
-        form.appendChild(input);
-      });
+      const input = document.createElement("input");
+      input.type = "hidden";
+      input.name = "ACCESS_TOKEN";
+      input.value = data.accessToken;
+      form.appendChild(input);
 
       document.body.appendChild(form);
-      form.submit(); // browser POSTs → PayFast handles token + shows payment page
+      form.submit(); // ✅ browser POSTs and lands on PayFast payment page
     } catch (err) {
       console.error("Payment error:", err);
-      setError(
-        err?.response?.data?.message || err.message || "Something went wrong"
-      );
+      setError(err.message || "Something went wrong");
       setLoading(false);
     }
   };
-
   return (
     <div style={{ padding: 40, fontFamily: "sans-serif" }}>
       <h2>PayFast Test Payment</h2>

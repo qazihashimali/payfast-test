@@ -75,10 +75,17 @@ payfastRouter.post("/initiate", async (req, res) => {
       STORE_ID: "",
     };
 
+    const tokenRes = await axios.post(
+      `${BASE_URL}/Ecommerce/api/Transaction/GetAccessToken`,
+      new URLSearchParams(payload).toString(),
+      { headers: { "Content-Type": "application/x-www-form-urlencoded" } }
+    );
+
+    const accessToken = tokenRes.data.ACCESS_TOKEN;
+
     res.json({
       success: true,
-
-      payload,
+      accessToken, // ← send token to React
     });
   } catch (err) {
     console.error("PayFast initiate error:", err);
