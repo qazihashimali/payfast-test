@@ -12,8 +12,11 @@ payfastRouter.post("/initiate", async (req, res) => {
     const MERCHANT_ID = process.env.PAYFAST_MERCHANT_ID;
     const SECURED_KEY = process.env.PAYFAST_SECURED_KEY;
     const BASE_URL = process.env.PAYFAST_BASE_URL;
-    const SUCCESS_URL = `${process.env.SERVER_URL}/api/payfast/success`;
-    const FAILURE_URL = `${process.env.SERVER_URL}/api/payfast/failure`;
+    // const SUCCESS_URL = `${process.env.SERVER_URL}/api/payfast/success`;
+    // const FAILURE_URL = `${process.env.SERVER_URL}/api/payfast/failure`;
+    // Change these two lines:
+    const SUCCESS_URL = `${process.env.CLIENT_URL}/order-success`; // ← React frontend
+    const FAILURE_URL = `${process.env.CLIENT_URL}/order-failed`; // ← React frontend
     const BASKET_ID = orderId || `ORDER-${Date.now()}`;
     const TXNAMT = String(amount);
     const CURRENCY = "PKR";
