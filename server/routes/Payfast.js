@@ -1,117 +1,117 @@
-import express from "express";
-import crypto from "crypto";
-import axios from "axios";
+// import express from "express";
+// import crypto from "crypto";
+// import axios from "axios";
 
-const payfastRouter = express.Router();
+// const payfastRouter = express.Router();
 
-payfastRouter.post("/initiate", async (req, res) => {
-  try {
-    const { amount, orderId, customerEmail, customerPhone, description } =
-      req.body;
+// payfastRouter.post("/initiate", async (req, res) => {
+//   try {
+//     const { amount, orderId, customerEmail, customerPhone, description } =
+//       req.body;
 
-    const MERCHANT_ID = process.env.PAYFAST_MERCHANT_ID;
-    const SECURED_KEY = process.env.PAYFAST_SECURED_KEY;
-    const BASE_URL = process.env.PAYFAST_BASE_URL;
-    const SUCCESS_URL = `${process.env.SERVER_URL}/api/payfast/success`;
-    const FAILURE_URL = `${process.env.SERVER_URL}/api/payfast/failure`;
-    const BASKET_ID = orderId || `ORDER-${Date.now()}`;
-    const TXNAMT = String(amount);
-    const CURRENCY = "PKR";
-    const TXNDATETIME = new Date()
-      .toISOString()
-      .replace("T", " ")
-      .substring(0, 19);
-    const TXNDESC = description || "Online Order";
+//     const MERCHANT_ID = process.env.PAYFAST_MERCHANT_ID;
+//     const SECURED_KEY = process.env.PAYFAST_SECURED_KEY;
+//     const BASE_URL = process.env.PAYFAST_BASE_URL;
+//     const SUCCESS_URL = `${process.env.SERVER_URL}/api/payfast/success`;
+//     const FAILURE_URL = `${process.env.SERVER_URL}/api/payfast/failure`;
+//     const BASKET_ID = orderId || `ORDER-${Date.now()}`;
+//     const TXNAMT = String(amount);
+//     const CURRENCY = "PKR";
+//     const TXNDATETIME = new Date()
+//       .toISOString()
+//       .replace("T", " ")
+//       .substring(0, 19);
+//     const TXNDESC = description || "Online Order";
 
-    const hashString =
-      MERCHANT_ID +
-      SECURED_KEY +
-      BASKET_ID +
-      TXNAMT +
-      CURRENCY +
-      TXNDATETIME +
-      TXNDESC +
-      SUCCESS_URL +
-      FAILURE_URL;
+//     const hashString =
+//       MERCHANT_ID +
+//       SECURED_KEY +
+//       BASKET_ID +
+//       TXNAMT +
+//       CURRENCY +
+//       TXNDATETIME +
+//       TXNDESC +
+//       SUCCESS_URL +
+//       FAILURE_URL;
 
-    const SIGNATURE = crypto
-      .createHash("sha256")
-      .update(hashString)
-      .digest("hex")
-      .toUpperCase();
-    // console.log("=== HASH DEBUG ===");
-    // console.log("MERCHANT_ID :", MERCHANT_ID);
-    // console.log("SECURED_KEY :", SECURED_KEY);
-    // console.log("BASKET_ID   :", BASKET_ID);
-    // console.log("TXNAMT      :", TXNAMT);
-    // console.log("CURRENCY    :", CURRENCY);
-    // console.log("TXNDATETIME :", TXNDATETIME);
-    // console.log("TXNDESC     :", TXNDESC);
-    // console.log("SUCCESS_URL :", SUCCESS_URL);
-    // console.log("FAILURE_URL :", FAILURE_URL);
-    // console.log("hashString  :", hashString);
-    // console.log("SIGNATURE   :", SIGNATURE);
-    // console.log("==================");
-    const payload = {
-      MERCHANT_ID,
-      MERCHANT_NAME: "Your Store Name",
-      SECURED_KEY,
-      TOKEN: "",
-      PROCCODE: "00",
-      TXNAMT,
-      CUSTOMER_MOBILE_NO: customerPhone,
-      CUSTOMER_EMAIL_ADDRESS: customerEmail,
-      SIGNATURE,
-      VERSION: "ECOMV2",
-      TXNDATETIME,
-      SUCCESS_URL,
-      FAILURE_URL,
-      BASKET_ID,
-      ORDER_DATE: TXNDATETIME.substring(0, 10),
-      CHECKOUT_URL: SUCCESS_URL,
-      RETURN_URL: SUCCESS_URL,
-      CURRENCY_CODE: CURRENCY,
-      TXNDESC,
-      STORE_ID: "",
-    };
+//     const SIGNATURE = crypto
+//       .createHash("sha256")
+//       .update(hashString)
+//       .digest("hex")
+//       .toUpperCase();
+//     // console.log("=== HASH DEBUG ===");
+//     // console.log("MERCHANT_ID :", MERCHANT_ID);
+//     // console.log("SECURED_KEY :", SECURED_KEY);
+//     // console.log("BASKET_ID   :", BASKET_ID);
+//     // console.log("TXNAMT      :", TXNAMT);
+//     // console.log("CURRENCY    :", CURRENCY);
+//     // console.log("TXNDATETIME :", TXNDATETIME);
+//     // console.log("TXNDESC     :", TXNDESC);
+//     // console.log("SUCCESS_URL :", SUCCESS_URL);
+//     // console.log("FAILURE_URL :", FAILURE_URL);
+//     // console.log("hashString  :", hashString);
+//     // console.log("SIGNATURE   :", SIGNATURE);
+//     // console.log("==================");
+//     const payload = {
+//       MERCHANT_ID,
+//       MERCHANT_NAME: "Your Store Name",
+//       SECURED_KEY,
+//       TOKEN: "",
+//       PROCCODE: "00",
+//       TXNAMT,
+//       CUSTOMER_MOBILE_NO: customerPhone,
+//       CUSTOMER_EMAIL_ADDRESS: customerEmail,
+//       SIGNATURE,
+//       VERSION: "ECOMV2",
+//       TXNDATETIME,
+//       SUCCESS_URL,
+//       FAILURE_URL,
+//       BASKET_ID,
+//       ORDER_DATE: TXNDATETIME.substring(0, 10),
+//       CHECKOUT_URL: SUCCESS_URL,
+//       RETURN_URL: SUCCESS_URL,
+//       CURRENCY_CODE: CURRENCY,
+//       TXNDESC,
+//       STORE_ID: "",
+//     };
 
-    const tokenRes = await axios.post(
-      `${BASE_URL}/Ecommerce/api/Transaction/GetAccessToken`,
-      new URLSearchParams(payload).toString(),
-      { headers: { "Content-Type": "application/x-www-form-urlencoded" } }
-    );
+//     const tokenRes = await axios.post(
+//       `${BASE_URL}/Ecommerce/api/Transaction/GetAccessToken`,
+//       new URLSearchParams(payload).toString(),
+//       { headers: { "Content-Type": "application/x-www-form-urlencoded" } }
+//     );
 
-    const accessToken = tokenRes.data.ACCESS_TOKEN;
+//     const accessToken = tokenRes.data.ACCESS_TOKEN;
 
-    res.json({
-      success: true,
-      accessToken,
-      payload,
-    });
-  } catch (err) {
-    console.error("PayFast initiate error:", err);
-    res
-      .status(500)
-      .json({ success: false, message: "Failed to initiate payment" });
-  }
-});
+//     res.json({
+//       success: true,
+//       accessToken,
+//       payload,
+//     });
+//   } catch (err) {
+//     console.error("PayFast initiate error:", err);
+//     res
+//       .status(500)
+//       .json({ success: false, message: "Failed to initiate payment" });
+//   }
+// });
 
-payfastRouter.get("/success", (req, res) => {
-  const { BASKET_ID, TXNAMT, RESPONSE_CODE } = req.query;
-  if (RESPONSE_CODE === "00") {
-    return res.redirect(
-      `${process.env.CLIENT_URL}/order-success?orderId=${BASKET_ID}&amount=${TXNAMT}`
-    );
-  }
-  res.redirect(`${process.env.CLIENT_URL}/order-failed?code=${RESPONSE_CODE}`);
-});
+// payfastRouter.get("/success", (req, res) => {
+//   const { BASKET_ID, TXNAMT, RESPONSE_CODE } = req.query;
+//   if (RESPONSE_CODE === "00") {
+//     return res.redirect(
+//       `${process.env.CLIENT_URL}/order-success?orderId=${BASKET_ID}&amount=${TXNAMT}`
+//     );
+//   }
+//   res.redirect(`${process.env.CLIENT_URL}/order-failed?code=${RESPONSE_CODE}`);
+// });
 
-payfastRouter.get("/failure", (req, res) => {
-  const { RESPONSE_CODE } = req.query;
-  res.redirect(`${process.env.CLIENT_URL}/order-failed?code=${RESPONSE_CODE}`);
-});
+// payfastRouter.get("/failure", (req, res) => {
+//   const { RESPONSE_CODE } = req.query;
+//   res.redirect(`${process.env.CLIENT_URL}/order-failed?code=${RESPONSE_CODE}`);
+// });
 
-export default payfastRouter;
+// export default payfastRouter;
 
 // import express from "express";
 // import crypto from "crypto";
@@ -310,3 +310,124 @@ export default payfastRouter;
 // payfastRouter.post("/failure", (req, res) => handleFailure(req.body, res));
 
 // export default payfastRouter;
+
+import express from "express";
+import crypto from "crypto";
+import axios from "axios";
+
+const payfastRouter = express.Router();
+
+payfastRouter.post("/initiate", async (req, res) => {
+  try {
+    const { amount, orderId, customerEmail, customerPhone, description } =
+      req.body;
+
+    const MERCHANT_ID = process.env.PAYFAST_MERCHANT_ID;
+    const SECURED_KEY = process.env.PAYFAST_SECURED_KEY;
+    const BASE_URL = process.env.PAYFAST_BASE_URL;
+
+    const SUCCESS_URL = `${process.env.SERVER_URL}/api/payfast/success`;
+    const FAILURE_URL = `${process.env.SERVER_URL}/api/payfast/failure`;
+
+    const BASKET_ID = orderId || `ORDER-${Date.now()}`;
+    const TXNAMT = String(amount);
+    const CURRENCY = "PKR";
+
+    const TXNDATETIME = new Date()
+      .toISOString()
+      .replace("T", " ")
+      .substring(0, 19);
+
+    const ORDER_DATE = TXNDATETIME.substring(0, 10);
+
+    const TXNDESC = description || "Online Order";
+
+    // ✅ STEP 1: Create payload WITHOUT signature
+    const payload = {
+      MERCHANT_ID,
+      MERCHANT_NAME: "Your Store Name",
+      TXNAMT,
+      CURRENCY_CODE: CURRENCY,
+      CUSTOMER_MOBILE_NO: customerPhone,
+      CUSTOMER_EMAIL_ADDRESS: customerEmail,
+      ORDER_DATE,
+      TXNDATETIME,
+      BASKET_ID,
+      TXNDESC,
+      PROCCODE: "00",
+      SUCCESS_URL,
+      FAILURE_URL,
+      RETURN_URL: SUCCESS_URL,
+      VERSION: "ECOMV2",
+    };
+
+    // ✅ STEP 2: Generate signature (CORRECT WAY)
+    const sortedKeys = Object.keys(payload).sort();
+
+    const hashString =
+      SECURED_KEY +
+      "&" +
+      sortedKeys.map((key) => `${key}=${payload[key]}`).join("&");
+
+    const SIGNATURE = crypto
+      .createHash("sha256")
+      .update(hashString)
+      .digest("hex")
+      .toUpperCase();
+
+    payload.SIGNATURE = SIGNATURE;
+
+    // ✅ STEP 3: Get ACCESS TOKEN
+    const tokenRes = await axios.post(
+      `${BASE_URL}/Ecommerce/api/Transaction/GetAccessToken`,
+      new URLSearchParams(payload).toString(),
+      {
+        headers: { "Content-Type": "application/x-www-form-urlencoded" },
+      }
+    );
+
+    const accessToken = tokenRes.data.ACCESS_TOKEN;
+
+    res.json({
+      success: true,
+      accessToken,
+      payload,
+    });
+  } catch (err) {
+    console.error("PayFast initiate error:", err?.response?.data || err);
+    res.status(500).json({
+      success: false,
+      message: "Failed to initiate payment",
+    });
+  }
+});
+
+// ✅ SUCCESS ROUTE
+payfastRouter.get("/success", (req, res) => {
+  console.log("SUCCESS RESPONSE:", req.query);
+
+  const { BASKET_ID, TXNAMT, RESPONSE_CODE } = req.query;
+
+  if (RESPONSE_CODE === "00") {
+    return res.redirect(
+      `${process.env.CLIENT_URL}/order-success?orderId=${BASKET_ID}&amount=${TXNAMT}`
+    );
+  }
+
+  return res.redirect(
+    `${process.env.CLIENT_URL}/order-failed?code=${RESPONSE_CODE}`
+  );
+});
+
+// ❌ FAILURE ROUTE
+payfastRouter.get("/failure", (req, res) => {
+  console.log("FAIL RESPONSE:", req.query);
+
+  const { RESPONSE_CODE } = req.query;
+
+  return res.redirect(
+    `${process.env.CLIENT_URL}/order-failed?code=${RESPONSE_CODE || "unknown"}`
+  );
+});
+
+export default payfastRouter;
