@@ -124,29 +124,21 @@ payfastRouter.post("/initiate", async (req, res) => {
     const { amount, orderId, customerEmail, customerPhone, description } =
       req.body;
 
-    const MERCHANT_ID = process.env.PAYFAST_MERCHANT_ID;
-    const SECURED_KEY = process.env.PAYFAST_SECURED_KEY;
-    const BASE_URL = process.env.PAYFAST_BASE_URL;
-    const SUCCESS_URL = `${process.env.SERVER_URL}/api/payfast/success`;
-    const FAILURE_URL = `${process.env.SERVER_URL}/api/payfast/failure`;
-    const BASKET_ID = orderId || `ORDER-${Date.now()}`;
-    const TXNAMT = String(amount);
+    const MERCHANT_ID = process.env.PAYFAST_MERCHANT_ID?.trim();
+    const SECURED_KEY = process.env.PAYFAST_SECURED_KEY?.trim();
+    const BASE_URL = process.env.PAYFAST_BASE_URL?.trim();
+    const SUCCESS_URL = `${process.env.SERVER_URL?.trim()}/api/payfast/success`;
+    const FAILURE_URL = `${process.env.SERVER_URL?.trim()}/api/payfast/failure`;
+    const BASKET_ID = (orderId || `ORDER-${Date.now()}`).trim();
+    const TXNAMT = parseFloat(amount).toFixed(2); // ← "1000.00"
     const CURRENCY = "PKR";
     const TXNDATETIME = new Date()
       .toISOString()
       .replace("T", " ")
       .substring(0, 19);
-    const TXNDESC = description || "Online Order";
+    const TXNDESC = (description || "Online Order").trim();
 
-    // Debug log — remove in production
-    console.log("=== ENV CHECK ===");
-    console.log("MERCHANT_ID :", MERCHANT_ID);
-    console.log("SERVER_URL  :", process.env.SERVER_URL);
-    console.log("CLIENT_URL  :", process.env.CLIENT_URL);
-    console.log("SUCCESS_URL :", SUCCESS_URL);
-    console.log("FAILURE_URL :", FAILURE_URL);
-    console.log("=================");
-
+    // ✅ Exact order PayFast expects
     const hashString =
       MERCHANT_ID +
       SECURED_KEY +
@@ -165,8 +157,17 @@ payfastRouter.post("/initiate", async (req, res) => {
       .toUpperCase();
 
     console.log("=== HASH DEBUG ===");
-    console.log("hashString :", hashString);
-    console.log("SIGNATURE  :", SIGNATURE);
+    console.log("MERCHANT_ID :", MERCHANT_ID);
+    console.log("SECURED_KEY :", SECURED_KEY);
+    console.log("BASKET_ID   :", BASKET_ID);
+    console.log("TXNAMT      :", TXNAMT);
+    console.log("CURRENCY    :", CURRENCY);
+    console.log("TXNDATETIME :", TXNDATETIME);
+    console.log("TXNDESC     :", TXNDESC);
+    console.log("SUCCESS_URL :", SUCCESS_URL);
+    console.log("FAILURE_URL :", FAILURE_URL);
+    console.log("hashString  :", hashString);
+    console.log("SIGNATURE   :", SIGNATURE);
     console.log("==================");
 
     const payload = {
@@ -185,7 +186,7 @@ payfastRouter.post("/initiate", async (req, res) => {
       FAILURE_URL,
       BASKET_ID,
       ORDER_DATE: TXNDATETIME.substring(0, 10),
-      CHECKOUT_URL: process.env.CLIENT_URL, // ← fixed: your React app URL
+      CHECKOUT_URL: process.env.CLIENT_URL?.trim(),
       RETURN_URL: SUCCESS_URL,
       CURRENCY_CODE: CURRENCY,
       TXNDESC,
@@ -210,7 +211,6 @@ payfastRouter.post("/initiate", async (req, res) => {
     const accessToken = tokenRes.data.ACCESS_TOKEN;
 
     if (!accessToken) {
-      console.error("No ACCESS_TOKEN in response:", tokenRes.data);
       return res.status(500).json({
         success: false,
         message: "PayFast did not return an access token",
@@ -218,16 +218,9 @@ payfastRouter.post("/initiate", async (req, res) => {
       });
     }
 
-    res.json({
-      success: true,
-      accessToken,
-      payload,
-    });
+    res.json({ success: true, accessToken, payload });
   } catch (err) {
-    console.error(
-      "PayFast initiate error:",
-      err?.response?.data || err.message
-    );
+    console.error("PayFast error:", err?.response?.data || err.message);
     res.status(500).json({
       success: false,
       message: "Failed to initiate payment",
