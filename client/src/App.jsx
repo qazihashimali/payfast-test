@@ -11,7 +11,7 @@ export default function App() {
 
     try {
       const { data } = await axios.post(
-        "http://localhost:8000/api/payfast/initiate",
+        "https://payfast-test.vercel.app//api/payfast/initiate",
         {
           amount: "1000",
           orderId: "ORDER-" + Date.now(),
