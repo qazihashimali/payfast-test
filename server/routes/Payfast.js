@@ -1,121 +1,121 @@
-import express from "express";
-import crypto from "crypto";
-import axios from "axios";
+// import express from "express";
+// import crypto from "crypto";
+// import axios from "axios";
 
-const payfastRouter = express.Router();
+// const payfastRouter = express.Router();
 
-payfastRouter.post("/initiate", async (req, res) => {
-  try {
-    const { amount, orderId, customerEmail, customerPhone, description } =
-      req.body;
+// payfastRouter.post("/initiate", async (req, res) => {
+//   try {
+//     const { amount, orderId, customerEmail, customerPhone, description } =
+//       req.body;
 
-    const MERCHANT_ID = process.env.PAYFAST_MERCHANT_ID;
-    const SECURED_KEY = process.env.PAYFAST_SECURED_KEY;
-    const BASE_URL = process.env.PAYFAST_BASE_URL;
-    // const SUCCESS_URL = `${process.env.SERVER_URL}/api/payfast/success`;
-    // const FAILURE_URL = `${process.env.SERVER_URL}/api/payfast/failure`;
-    // Change these two lines:
-    const SUCCESS_URL = `${process.env.CLIENT_URL}/order-success`; // ← React frontend
-    const FAILURE_URL = `${process.env.CLIENT_URL}/order-failed`; // ← React frontend
-    const BASKET_ID = orderId || `ORDER-${Date.now()}`;
-    const TXNAMT = String(amount);
-    const CURRENCY = "PKR";
-    const TXNDATETIME = new Date()
-      .toISOString()
-      .replace("T", " ")
-      .substring(0, 19);
-    const TXNDESC = description || "Online Order";
+//     const MERCHANT_ID = process.env.PAYFAST_MERCHANT_ID;
+//     const SECURED_KEY = process.env.PAYFAST_SECURED_KEY;
+//     const BASE_URL = process.env.PAYFAST_BASE_URL;
+//     // const SUCCESS_URL = `${process.env.SERVER_URL}/api/payfast/success`;
+//     // const FAILURE_URL = `${process.env.SERVER_URL}/api/payfast/failure`;
+//     // Change these two lines:
+//     const SUCCESS_URL = `${process.env.CLIENT_URL}/order-success`; // ← React frontend
+//     const FAILURE_URL = `${process.env.CLIENT_URL}/order-failed`; // ← React frontend
+//     const BASKET_ID = orderId || `ORDER-${Date.now()}`;
+//     const TXNAMT = String(amount);
+//     const CURRENCY = "PKR";
+//     const TXNDATETIME = new Date()
+//       .toISOString()
+//       .replace("T", " ")
+//       .substring(0, 19);
+//     const TXNDESC = description || "Online Order";
 
-    const hashString =
-      MERCHANT_ID +
-      SECURED_KEY +
-      BASKET_ID +
-      TXNAMT +
-      CURRENCY +
-      TXNDATETIME +
-      TXNDESC +
-      SUCCESS_URL +
-      FAILURE_URL;
+//     const hashString =
+//       MERCHANT_ID +
+//       SECURED_KEY +
+//       BASKET_ID +
+//       TXNAMT +
+//       CURRENCY +
+//       TXNDATETIME +
+//       TXNDESC +
+//       SUCCESS_URL +
+//       FAILURE_URL;
 
-    const SIGNATURE = crypto
-      .createHash("sha256")
-      .update(hashString)
-      .digest("hex")
-      .toUpperCase();
-    // console.log("=== HASH DEBUG ===");
-    // console.log("MERCHANT_ID :", MERCHANT_ID);
-    // console.log("SECURED_KEY :", SECURED_KEY);
-    // console.log("BASKET_ID   :", BASKET_ID);
-    // console.log("TXNAMT      :", TXNAMT);
-    // console.log("CURRENCY    :", CURRENCY);
-    // console.log("TXNDATETIME :", TXNDATETIME);
-    // console.log("TXNDESC     :", TXNDESC);
-    // console.log("SUCCESS_URL :", SUCCESS_URL);
-    // console.log("FAILURE_URL :", FAILURE_URL);
-    // console.log("hashString  :", hashString);
-    // console.log("SIGNATURE   :", SIGNATURE);
-    // console.log("==================");
-    const payload = {
-      MERCHANT_ID,
-      MERCHANT_NAME: "Your Store Name",
-      SECURED_KEY,
-      TOKEN: "",
-      PROCCODE: "00",
-      TXNAMT,
-      CUSTOMER_MOBILE_NO: customerPhone,
-      CUSTOMER_EMAIL_ADDRESS: customerEmail,
-      SIGNATURE,
-      VERSION: "ECOMV2",
-      TXNDATETIME,
-      SUCCESS_URL,
-      FAILURE_URL,
-      BASKET_ID,
-      ORDER_DATE: TXNDATETIME.substring(0, 10),
-      CHECKOUT_URL: SUCCESS_URL,
-      RETURN_URL: SUCCESS_URL,
-      CURRENCY_CODE: CURRENCY,
-      TXNDESC,
-      STORE_ID: "",
-    };
+//     const SIGNATURE = crypto
+//       .createHash("sha256")
+//       .update(hashString)
+//       .digest("hex")
+//       .toUpperCase();
+//     // console.log("=== HASH DEBUG ===");
+//     // console.log("MERCHANT_ID :", MERCHANT_ID);
+//     // console.log("SECURED_KEY :", SECURED_KEY);
+//     // console.log("BASKET_ID   :", BASKET_ID);
+//     // console.log("TXNAMT      :", TXNAMT);
+//     // console.log("CURRENCY    :", CURRENCY);
+//     // console.log("TXNDATETIME :", TXNDATETIME);
+//     // console.log("TXNDESC     :", TXNDESC);
+//     // console.log("SUCCESS_URL :", SUCCESS_URL);
+//     // console.log("FAILURE_URL :", FAILURE_URL);
+//     // console.log("hashString  :", hashString);
+//     // console.log("SIGNATURE   :", SIGNATURE);
+//     // console.log("==================");
+//     const payload = {
+//       MERCHANT_ID,
+//       MERCHANT_NAME: "Your Store Name",
+//       SECURED_KEY,
+//       TOKEN: "",
+//       PROCCODE: "00",
+//       TXNAMT,
+//       CUSTOMER_MOBILE_NO: customerPhone,
+//       CUSTOMER_EMAIL_ADDRESS: customerEmail,
+//       SIGNATURE,
+//       VERSION: "ECOMV2",
+//       TXNDATETIME,
+//       SUCCESS_URL,
+//       FAILURE_URL,
+//       BASKET_ID,
+//       ORDER_DATE: TXNDATETIME.substring(0, 10),
+//       CHECKOUT_URL: SUCCESS_URL,
+//       RETURN_URL: SUCCESS_URL,
+//       CURRENCY_CODE: CURRENCY,
+//       TXNDESC,
+//       STORE_ID: "",
+//     };
 
-    const tokenRes = await axios.post(
-      `${BASE_URL}/Ecommerce/api/Transaction/GetAccessToken`,
-      new URLSearchParams(payload).toString(),
-      { headers: { "Content-Type": "application/x-www-form-urlencoded" } }
-    );
+//     const tokenRes = await axios.post(
+//       `${BASE_URL}/Ecommerce/api/Transaction/GetAccessToken`,
+//       new URLSearchParams(payload).toString(),
+//       { headers: { "Content-Type": "application/x-www-form-urlencoded" } }
+//     );
 
-    const accessToken = tokenRes.data.ACCESS_TOKEN;
+//     const accessToken = tokenRes.data.ACCESS_TOKEN;
 
-    res.json({
-      success: true,
-      accessToken, // ← send token to React
-    });
-  } catch (err) {
-    console.error("PayFast initiate error:", err);
-    res
-      .status(500)
-      .json({ success: false, message: "Failed to initiate payment" });
-  }
-});
+//     res.json({
+//       success: true,
+//       accessToken, // ← send token to React
+//     });
+//   } catch (err) {
+//     console.error("PayFast initiate error:", err);
+//     res
+//       .status(500)
+//       .json({ success: false, message: "Failed to initiate payment" });
+//   }
+// });
 
-payfastRouter.post("/success", (req, res) => {
-  const { BASKET_ID, TXNAMT, RESPONSE_CODE } = req.body; // ← req.body not req.query
-  if (RESPONSE_CODE === "00") {
-    return res.redirect(
-      `${process.env.CLIENT_URL}/order-success?orderId=${BASKET_ID}&amount=${TXNAMT}`
-    );
-  }
-  res.redirect(`${process.env.CLIENT_URL}/order-failed?code=${RESPONSE_CODE}`);
-});
+// payfastRouter.post("/success", (req, res) => {
+//   const { BASKET_ID, TXNAMT, RESPONSE_CODE } = req.body; // ← req.body not req.query
+//   if (RESPONSE_CODE === "00") {
+//     return res.redirect(
+//       `${process.env.CLIENT_URL}/order-success?orderId=${BASKET_ID}&amount=${TXNAMT}`
+//     );
+//   }
+//   res.redirect(`${process.env.CLIENT_URL}/order-failed?code=${RESPONSE_CODE}`);
+// });
 
-payfastRouter.post("/failure", (req, res) => {
-  const { RESPONSE_CODE, BASKET_ID } = req.body; // ← req.body not req.query
-  res.redirect(
-    `${process.env.CLIENT_URL}/order-failed?code=${RESPONSE_CODE}&orderId=${BASKET_ID}`
-  );
-});
+// payfastRouter.post("/failure", (req, res) => {
+//   const { RESPONSE_CODE, BASKET_ID } = req.body; // ← req.body not req.query
+//   res.redirect(
+//     `${process.env.CLIENT_URL}/order-failed?code=${RESPONSE_CODE}&orderId=${BASKET_ID}`
+//   );
+// });
 
-export default payfastRouter;
+// export default payfastRouter;
 
 // import express from "express";
 // import crypto from "crypto";
@@ -314,3 +314,91 @@ export default payfastRouter;
 // payfastRouter.post("/failure", (req, res) => handleFailure(req.body, res));
 
 // export default payfastRouter;
+
+import express from "express";
+import axios from "axios";
+
+const payfastRouter = express.Router();
+
+payfastRouter.post("/initiate", async (req, res) => {
+  try {
+    const { amount, orderId, customerEmail, customerPhone, description } =
+      req.body;
+
+    const MERCHANT_ID = process.env.PAYFAST_MERCHANT_ID; // 103
+    const SECURED_KEY = process.env.PAYFAST_SECURED_KEY; // PzPx6ut-SVay7tCUMqG
+    const BASE_URL = process.env.PAYFAST_BASE_URL; // https://ipguat.apps.net.pk
+    const SUCCESS_URL = `${process.env.CLIENT_URL}/order-success`;
+    const FAILURE_URL = `${process.env.CLIENT_URL}/order-failed`;
+    const CHECKOUT_URL = `${process.env.CLIENT_URL}/checkout`;
+    const BASKET_ID = orderId || `ITEM-${Date.now()}`;
+    const TXNAMT = String(amount);
+    const CURRENCY = "PKR";
+    const ORDER_DATE = new Date()
+      .toISOString()
+      .replace("T", " ")
+      .substring(0, 19);
+    const TXNDESC = description || "Online Order";
+
+    // Step 1 — GetAccessToken (only 5 fields needed as per docs)
+    const tokenParams = new URLSearchParams({
+      MERCHANT_ID,
+      SECURED_KEY,
+      BASKET_ID,
+      TXNAMT,
+      CURRENCY_CODE: CURRENCY,
+    });
+
+    console.log("Token params:", tokenParams.toString());
+
+    const tokenRes = await axios.post(
+      `${BASE_URL}/Ecommerce/api/Transaction/GetAccessToken`,
+      tokenParams.toString(),
+      { headers: { "Content-Type": "application/x-www-form-urlencoded" } }
+    );
+
+    console.log("Token response:", tokenRes.data);
+
+    const TOKEN = tokenRes.data.ACCESS_TOKEN;
+
+    if (!TOKEN) {
+      return res
+        .status(500)
+        .json({ success: false, message: "Token not received from PayFast" });
+    }
+
+    // Step 2 — return PostTransaction payload to frontend
+    res.json({
+      success: true,
+      payfastUrl: `${BASE_URL}/Ecommerce/api/Transaction/PostTransaction`,
+      payload: {
+        CURRENCY_CODE: CURRENCY,
+        MERCHANT_ID,
+        MERCHANT_NAME: "Your Store Name",
+        TOKEN, // ACCESS_TOKEN goes here
+        BASKET_ID,
+        TXNAMT,
+        ORDER_DATE,
+        SUCCESS_URL, // plain — no encoding
+        FAILURE_URL, // plain — no encoding
+        CHECKOUT_URL,
+        CUSTOMER_EMAIL_ADDRESS: customerEmail,
+        CUSTOMER_MOBILE_NO: customerPhone,
+        SIGNATURE: "SOMERANDOM-STRING", // docs show this as optional placeholder
+        VERSION: "MERCHANTCART-0.1",
+        TXNDESC,
+        PROCCODE: "00",
+        TRAN_TYPE: "ECOMM_PURCHASE", // required per docs
+        STORE_ID: "",
+        RECURRING_TXN: "",
+      },
+    });
+  } catch (err) {
+    console.error("PayFast error:", err.response?.data || err.message);
+    res
+      .status(500)
+      .json({ success: false, message: "Failed to initiate payment" });
+  }
+});
+
+export default payfastRouter;
