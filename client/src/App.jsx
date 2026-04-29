@@ -257,7 +257,7 @@ export default function App() {
           cursor: loading ? "not-allowed" : "pointer",
         }}
       >
-        {loading ? "Redirecting to PayFast..." : "Pay Now"}
+        {loading ? "Redirecting to PayFast.." : "Pay Now"}
       </button>
     </div>
   );
